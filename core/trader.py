@@ -1,7 +1,5 @@
 # core/trader.py
-from exchanges.binance import BinanceTrader
-from core.risk_manager import RiskManager
-import json
+from exchanges.bitso import BitsoTraderimport
 import logging
 from utils.notifier import TelegramNotifier, EmailNotifier
 from exchanges.paypal import PayPalP2P
@@ -10,10 +8,9 @@ import time
 class Trader:
     def __init__(self):
         self.paypal = PayPalP2P()
-        self.binance = BinanceTrader()
+        self.bitso = BitsoTrader()        
         self.risk = RiskManager()
         self.notifier = TelegramNotifier("8103459177:AAF54aPjAKBrhxfkP2pmur_Ajjc3c8qONOE")
-        self.telegram = TelegramNotifier("TU_TOKEN")
         try:
             with open('config/settings.json') as f:
                 self.config = json.load(f)
@@ -23,7 +20,7 @@ class Trader:
 
     def execute_trade(self, symbol, side):
         try:
-            balance = self.binance.get_balance()
+            balance = self.bitso.get_bitso()
             if balance <= 0:
                 logging.warning("Saldo insuficiente para operar")
                 return
@@ -33,13 +30,13 @@ class Trader:
                 self.paypal.buy_crypto(10)
                 self.notifier.send("Fondos bajos: Comprando 10 USD vía PayPal P2P")
                 time.sleep(60)
-                balance = self.binance.get_balance()  # Actualiza saldo
+                balance = self.bitso.get_bitso()  # Actualiza saldo
 
             # === 10% DEL SALDO TOTAL ===
             max_risk_percent = self.config.get('max_risk_per_trade_percent', 0.10)
             risk_amount = balance * max_risk_percent  # ¡10% del saldo total!
 
-            price_data = self.binance.client.get_symbol_ticker(symbol=symbol)
+            price_data = self.bitso.client.get_symbol_ticker(symbol=symbol)
             price = float(price_data['price'])
             qty = risk_amount / price
             qty = round(qty, 6)

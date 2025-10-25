@@ -4,14 +4,14 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from core.trader import Trader
 from core.market_research import MarketResearch
 from utils.logger import setup_logger
-from exchanges.binance import BinanceTrader
+from exchanges.bitso import BitsoTrader
 
 class TradingBot:
     def __init__(self):
-        self.binance = BinanceTrader()
+        self.bitso = BitsoTrader()
         self.logger = setup_logger()
         self.trader = Trader()
-        self.research = MarketResearch(self.binance.client)
+        self.research = MarketResearch(self.bitso.client)
         self.scheduler = BackgroundScheduler()
         self.running = True
         self.logger.info("Bot inicializado correctamente")
