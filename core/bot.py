@@ -1,10 +1,12 @@
 # core/bot.py
+# NÚCLEO DEL BOT - ORQUESTA TODOS LOS MÓDULOS
+
 import logging
 import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from core.trader import Trader
 from core.market_research import MarketResearch
-from exchanges.bitso import BitsoTrader
+from exchanges.kucoin import KuCoinTrader
 from utils.paypal import PayPalP2P
 from config.settings import Settings
 from utils.logger import setup_logger
@@ -15,16 +17,19 @@ class TradingBot:
         self.logger = setup_logger()
         self.logger.info("Iniciando bot en modo LIVE + PayPal P2P...")
 
+        # Inicializa componentes
         self.paypal = PayPalP2P()
-        self.bitso = BitsoTrader()
-        
-        if self.bitso.client is None:
-            self.logger.error("No se pudo conectar a Bitso. Revisa bitso_keys.json")
-            exit(1)
+        self.kucoin = KuCoinTrader()  # ← AHORA SÍ LEE .env
+
+        # Verifica conexión a kucoin
+        if self.kucoin.client is None:
+          self.logger.error("No se pudo conectar a Bitso. Revisa .env")
+          exit(1)
 
         self.trader = Trader()
-        self.research = MarketResearch(self.bitso.client)
+        self.research = MarketResearch(self.kucoin)
 
+        # Programa investigación cada 2 minutos
         self.scheduler = BackgroundScheduler()
         self.scheduler.add_job(self.research_cycle, 'interval', minutes=2)
         self.scheduler.start()
@@ -32,6 +37,7 @@ class TradingBot:
         self.logger.info("Bot iniciado correctamente. Investigación cada 2 min.")
 
     def research_cycle(self):
+        """Ciclo principal: escanea memecoins y opera"""
         try:
             self.logger.info("Iniciando ciclo de investigación...")
             signals = self.research.scan_memecoins()
@@ -44,6 +50,7 @@ class TradingBot:
             self.logger.error(f"Error en ciclo: {e}")
 
     def start(self):
+        """Mantiene el bot vivo 24/7"""
         self.logger.info("Bot en ejecución 24/7...")
         try:
             while True:

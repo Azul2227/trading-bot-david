@@ -1,4 +1,4 @@
-#!C:\Users\David\Desktop\trading.bot\venv\Scripts\python.exe
+#!C:\Users\David\Desktop\trading.bot - con grok\venv\Scripts\python.exe
 
 import argparse
 import code

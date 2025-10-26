@@ -26,7 +26,7 @@ def home():
 @app.route('/data')
 def api_data():
     return jsonify({
-        "balance": bot.trader.binance.get_balance(),
+        "balance": bot.trader.kucoin.get_balance(),
         "positions": len(bot.trader.risk.positions)
     })
 

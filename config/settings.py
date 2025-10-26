@@ -1,4 +1,6 @@
 # config/settings.py
+# CONFIGURACIÓN GLOBAL DEL BOT
+
 import json
 import logging
 
@@ -12,7 +14,9 @@ class Settings:
             self.data = {
                 "max_risk_per_trade_percent": 0.10,
                 "operation_time_limit_minutes": 5,
-                "telegram_token": "TU_TOKEN"
+                "profit_target_percent": 3.0,
+                "stop_loss_percent": 1.5,
+                "telegram_token": "TU_TOKEN_TELEGRAM"
             }
 
     def get(self, key, default=None):

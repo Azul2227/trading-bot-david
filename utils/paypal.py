@@ -1,13 +1,12 @@
 # utils/paypal.py
+# SIMULACIÓN DE RECARGA CON PAYPAL P2P
+
 import logging
 
 class PayPalP2P:
     def __init__(self):
         logging.info("PayPal P2P configurado correctamente")
 
-    def buy_crypto(self, amount_usd):
-        """Simula recarga vía PayPal P2P"""
-        logging.info(f"Recargando {amount_usd} USD vía PayPal P2P")
-        # Aquí iría integración real con PayPal REST SDK
-        # Por ahora: simulación
+    def buy_crypto(self, amount):
+        logging.info(f"Simulando recarga de {amount} USD vía PayPal P2P")
         return True

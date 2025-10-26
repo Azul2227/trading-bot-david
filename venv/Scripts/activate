@@ -35,7 +35,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\David\Desktop\trading.bot\venv"
+VIRTUAL_ENV="C:\Users\David\Desktop\trading.bot - con grok\venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
