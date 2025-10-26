@@ -1,58 +1,53 @@
-import time
+# core/bot.py
 import logging
+import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from core.trader import Trader
 from core.market_research import MarketResearch
-from utils.logger import setup_logger
 from exchanges.bitso import BitsoTrader
+from utils.paypal import PayPalP2P
+from config.settings import Settings
+from utils.logger import setup_logger
 
 class TradingBot:
     def __init__(self):
-        self.bitso = BitsoTrader()
+        self.config = Settings()
         self.logger = setup_logger()
+        self.logger.info("Iniciando bot en modo LIVE + PayPal P2P...")
+
+        self.paypal = PayPalP2P()
+        self.bitso = BitsoTrader()
+        
+        if self.bitso.client is None:
+            self.logger.error("No se pudo conectar a Bitso. Revisa bitso_keys.json")
+            exit(1)
+
         self.trader = Trader()
         self.research = MarketResearch(self.bitso.client)
+
         self.scheduler = BackgroundScheduler()
-        self.running = True
-        self.logger.info("Bot inicializado correctamente")
+        self.scheduler.add_job(self.research_cycle, 'interval', minutes=2)
+        self.scheduler.start()
+
+        self.logger.info("Bot iniciado correctamente. Investigación cada 2 min.")
 
     def research_cycle(self):
-        self.logger.info("Iniciando investigación de mercado...")
-        signals = self.research.scan_memecoins()
-        for sig in signals:
-            action = self.research.analyze_signal(sig['symbol'])
-            if action == 'BUY':
-                self.trader.execute_trade(sig['symbol'], 'BUY')
-            self.logger.info(f"Señal: {sig['symbol']} -> {action}")
-            self.trader.notifier.send("¡BOT INICIADO! Telegram 100% activo")
+        try:
+            self.logger.info("Iniciando ciclo de investigación...")
+            signals = self.research.scan_memecoins()
+            for sig in signals:
+                action = self.research.analyze_signal(sig['symbol'])
+                if action == 'BUY':
+                    self.trader.execute_trade(sig['symbol'], 'BUY')
+            self.trader.check_positions()
+        except Exception as e:
+            self.logger.error(f"Error en ciclo: {e}")
 
     def start(self):
-        # LIMPIAR JOBS ANTERIORES
-        for job in self.scheduler.get_jobs():
-            job.remove()
-
-        # PROGRAMAR NUEVOS JOBS
-        self.scheduler.add_job(self.research_cycle, 'interval', minutes=3, id='research_job')
-        self.scheduler.add_job(self.trader.check_positions, 'interval', minutes=1, id='check_positions')
-
+        self.logger.info("Bot en ejecución 24/7...")
         try:
-            self.scheduler.start()
-            self.logger.info("Bot iniciado con APScheduler (MODO TESTNET)")
-
-            # MANTENER VIVO
-            while self.running:
+            while True:
                 time.sleep(1)
-        except (KeyboardInterrupt, SystemExit):
-            self.stop()
-        except Exception as e:
-            self.logger.error(f"Error en start(): {e}")
-            self.stop()
-
-    def stop(self):
-        self.running = False
-        try:
-            if self.scheduler.running:
-                self.scheduler.shutdown(wait=False)
-            self.logger.info("Bot detenido correctamente")
-        except:
-            pass
+        except KeyboardInterrupt:
+            self.logger.info("Bot detenido por el usuario.")
+            self.scheduler.shutdown()
